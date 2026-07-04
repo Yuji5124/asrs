@@ -38,6 +38,19 @@
   - `conditions` — 出現条件（スイッチ条件など、Phase 2）
   - `commands: EventCommand[]`（Phase 2）
 
+### 生成メタデータ案（Phase 1.5検討・未実装）
+
+Seed World Mode を実装する場合、生成後も通常の `GameMap` として編集できることを優先する。seedは再生成や共有の補助情報であり、実行時状態ではない。現時点では `src/core/types/` に追加しない将来案とする。
+
+- `GameMap.generation`（任意）
+  - `mode: "seed-world"` — Seed World Modeで生成されたことを示す
+  - `seed: string` — ユーザーが入力したseed文字列
+  - `generatorVersion: number` — 同じseedでも生成ロジック変更を区別するための番号
+  - `generatedAt: string` — 初回生成時刻（ISO文字列）
+- `generation` がないマップは手作りマップとして扱う
+- 保存されるのは生成後の確定済み `tiles` / `events` / `startPoint` が正で、seedから毎回再生成して表示する方式にはしない
+- validateでは、Phase 1.5実装時に `generation` が存在してもマップ本体の `tiles.length === width * height` とスタート地点の妥当性を必ず確認する
+
 ### イベントコマンド（Phase 2）
 
 `type` フィールドで判別する判別可能ユニオン（discriminated union）にする。
