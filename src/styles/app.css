@@ -91,6 +91,15 @@ button:focus-visible {
   outline-offset: 1px;
 }
 
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+button:disabled:hover {
+  background: #3a3d47;
+}
+
 button.primary {
   background: #4a6b3f;
   border-color: #6f9c5f;
@@ -214,6 +223,31 @@ button.danger {
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+.canvas-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 6px 12px;
+  background: #24262c;
+  border-bottom: 1px solid #15161a;
+}
+
+.tool-group,
+.zoom-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.zoom-label {
+  min-width: 44px;
+  text-align: center;
+  font-size: 12px;
+  color: #b9bec7;
 }
 
 .canvas-area {

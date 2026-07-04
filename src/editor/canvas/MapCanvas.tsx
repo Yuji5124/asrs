@@ -3,11 +3,16 @@ import { EVENT_DEFS } from '../../core/map/events';
 import { eventAt, inBounds, tileAt } from '../../core/map/passability';
 import { TILE_DEFS } from '../../core/map/tiles';
 import { drawMap, TILE_SIZE } from '../../render/drawMap';
-import { useEditorStore } from '../store/editorStore';
-import type { PaletteSelection } from '../store/editorStore';
+import { useEditorStore, ZOOM_LEVELS } from '../store/editorStore';
+import type { PaletteSelection, TileTool } from '../store/editorStore';
 
-function toolLabel(palette: PaletteSelection): string {
-  if (palette.kind === 'tile') return `${TILE_DEFS[palette.tile].label}を塗る`;
+function toolLabel(palette: PaletteSelection, tileTool: TileTool): string {
+  if (palette.kind === 'tile') {
+    const name = TILE_DEFS[palette.tile].label;
+    if (tileTool === 'fill') return `${name}で塗りつぶす`;
+    if (tileTool === 'rect') return `${name}の矩形を塗る`;
+    return `${name}を塗る`;
+  }
   if (palette.kind === 'event') return `${EVENT_DEFS[palette.appearance].label}を置く`;
   return 'スタート地点を移す';
 }
@@ -87,14 +92,41 @@ function drawHoverFrame(ctx: CanvasRenderingContext2D, x: number, y: number, isB
   ctx.restore();
 }
 
+interface RectDrag {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+const TILE_TOOLS: { tool: TileTool; label: string }[] = [
+  { tool: 'pen', label: 'ペン' },
+  { tool: 'fill', label: '塗りつぶし' },
+  { tool: 'rect', label: '矩形' },
+];
+
 export function MapCanvas() {
   const project = useEditorStore((s) => s.project);
   const palette = useEditorStore((s) => s.palette);
+  const tileTool = useEditorStore((s) => s.tileTool);
+  const zoom = useEditorStore((s) => s.zoom);
   const selectedEventId = useEditorStore((s) => s.selectedEventId);
   const applyToolAt = useEditorStore((s) => s.applyToolAt);
+  const applyRectFill = useEditorStore((s) => s.applyRectFill);
+  const beginStroke = useEditorStore((s) => s.beginStroke);
+  const endStroke = useEditorStore((s) => s.endStroke);
+  const setTileTool = useEditorStore((s) => s.setTileTool);
+  const setZoom = useEditorStore((s) => s.setZoom);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const paintingRef = useRef(false);
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null);
+  // 高速ドラッグ（同一ティック内の連続イベント）でもズレないよう、refを正としstateは描画用ミラー
+  const rectDragRef = useRef<RectDrag | null>(null);
+  const [rectDrag, setRectDragState] = useState<RectDrag | null>(null);
+  function setRectDrag(drag: RectDrag | null) {
+    rectDragRef.current = drag;
+    setRectDragState(drag);
+  }
   const map = project.maps[0];
 
   const hoverInMap = hover !== null && inBounds(map, hover.x, hover.y);
@@ -111,19 +143,45 @@ export function MapCanvas() {
     const ctx = canvasRef.current?.getContext('2d');
     if (!ctx) return;
     drawMap(ctx, map, { grid: true, startPoint: project.startPoint, selectedEventId });
-    if (hoverInMap && hoverTile !== null) {
+    if (rectDrag && palette.kind === 'tile') {
+      const left = Math.max(0, Math.min(rectDrag.x0, rectDrag.x1));
+      const right = Math.min(map.width - 1, Math.max(rectDrag.x0, rectDrag.x1));
+      const top = Math.max(0, Math.min(rectDrag.y0, rectDrag.y1));
+      const bottom = Math.min(map.height - 1, Math.max(rectDrag.y0, rectDrag.y1));
+      if (left <= right && top <= bottom) {
+        ctx.save();
+        ctx.globalAlpha = 0.4;
+        ctx.fillStyle = TILE_DEFS[palette.tile].color;
+        ctx.fillRect(left * TILE_SIZE, top * TILE_SIZE, (right - left + 1) * TILE_SIZE, (bottom - top + 1) * TILE_SIZE);
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = 'rgba(240, 217, 92, 0.9)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+          left * TILE_SIZE + 1,
+          top * TILE_SIZE + 1,
+          (right - left + 1) * TILE_SIZE - 2,
+          (bottom - top + 1) * TILE_SIZE - 2,
+        );
+        ctx.restore();
+      }
+    } else if (hoverInMap && hoverTile !== null) {
       drawToolPreview(ctx, palette, hover!.x, hover!.y, hoverEvent !== null);
       drawHoverFrame(ctx, hover!.x, hover!.y, !hoverWalkable);
     }
-  }, [map, palette, project.startPoint, selectedEventId, hover, hoverInMap, hoverTile, hoverEvent, hoverWalkable]);
+  }, [map, palette, project.startPoint, selectedEventId, hover, hoverInMap, hoverTile, hoverEvent, hoverWalkable, rectDrag]);
 
   function cellFromMouse(e: React.MouseEvent<HTMLCanvasElement>): { x: number; y: number } {
     const rect = e.currentTarget.getBoundingClientRect();
+    // ズーム倍率に依存しないよう、表示幅に対する比率でマスを求める
     return {
-      x: Math.floor((e.clientX - rect.left) / TILE_SIZE),
-      y: Math.floor((e.clientY - rect.top) / TILE_SIZE),
+      x: Math.floor(((e.clientX - rect.left) / rect.width) * map.width),
+      y: Math.floor(((e.clientY - rect.top) / rect.height) * map.height),
     };
   }
+
+  const zoomIndex = ZOOM_LEVELS.findIndex((z) => z === zoom);
+  const canZoomOut = zoomIndex > 0;
+  const canZoomIn = zoomIndex >= 0 && zoomIndex < ZOOM_LEVELS.length - 1;
 
   const cursorClass = hoverEvent ? 'is-select' : palette.kind === 'tile' ? 'is-paint' : 'is-place';
 
@@ -136,36 +194,83 @@ export function MapCanvas() {
   const hoverAction =
     hoverEvent !== null
       ? 'クリックで配置物を選択'
-      : hoverTile !== null && palette.kind === 'tile' && hoverStart && !TILE_DEFS[palette.tile].walkable
-        ? `クリック/ドラッグで${TILE_DEFS[palette.tile].label}を塗る（スタート地点に注意）`
-        : hoverTile !== null
-          ? `クリック: ${toolLabel(palette)}`
-          : `選択中: ${toolLabel(palette)}`;
+      : hoverTile === null
+        ? `選択中: ${toolLabel(palette, tileTool)}`
+        : palette.kind === 'tile' && tileTool === 'rect'
+          ? `ドラッグ: ${toolLabel(palette, tileTool)}`
+          : palette.kind === 'tile' && hoverStart && !TILE_DEFS[palette.tile].walkable
+            ? `クリック: ${toolLabel(palette, tileTool)}（スタート地点に注意）`
+            : `クリック: ${toolLabel(palette, tileTool)}`;
 
   return (
     <main className="canvas-column">
+      <div className="canvas-toolbar">
+        <div className="tool-group">
+          {TILE_TOOLS.map(({ tool, label }) => (
+            <button
+              key={tool}
+              className={palette.kind === 'tile' && tileTool === tool ? 'active' : ''}
+              aria-pressed={palette.kind === 'tile' && tileTool === tool}
+              disabled={palette.kind !== 'tile'}
+              onClick={() => setTileTool(tool)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="zoom-group">
+          <button onClick={() => setZoom(ZOOM_LEVELS[zoomIndex - 1])} disabled={!canZoomOut} aria-label="縮小">
+            −
+          </button>
+          <span className="zoom-label">{Math.round(zoom * 100)}%</span>
+          <button onClick={() => setZoom(ZOOM_LEVELS[zoomIndex + 1])} disabled={!canZoomIn} aria-label="拡大">
+            ＋
+          </button>
+        </div>
+      </div>
       <div className="canvas-area">
         <canvas
           ref={canvasRef}
           className={`map-canvas ${cursorClass}`}
           width={map.width * TILE_SIZE}
           height={map.height * TILE_SIZE}
+          style={{ width: map.width * TILE_SIZE * zoom, height: map.height * TILE_SIZE * zoom }}
           onMouseDown={(e) => {
-            paintingRef.current = true;
             const c = cellFromMouse(e);
+            beginStroke();
+            if (palette.kind === 'tile' && tileTool === 'rect' && !eventAt(map, c.x, c.y)) {
+              setRectDrag({ x0: c.x, y0: c.y, x1: c.x, y1: c.y });
+              return;
+            }
+            paintingRef.current = true;
             applyToolAt(c.x, c.y, false);
           }}
           onMouseMove={(e) => {
             const c = cellFromMouse(e);
             setHover((prev) => (prev && prev.x === c.x && prev.y === c.y ? prev : c));
-            if (paintingRef.current) applyToolAt(c.x, c.y, true);
+            const dragging = rectDragRef.current;
+            if (dragging) {
+              if (dragging.x1 !== c.x || dragging.y1 !== c.y) {
+                setRectDrag({ ...dragging, x1: c.x, y1: c.y });
+              }
+            } else if (paintingRef.current) {
+              applyToolAt(c.x, c.y, true);
+            }
           }}
           onMouseUp={() => {
+            const dragging = rectDragRef.current;
+            if (dragging) {
+              applyRectFill(dragging.x0, dragging.y0, dragging.x1, dragging.y1);
+              setRectDrag(null);
+            }
             paintingRef.current = false;
+            endStroke();
           }}
           onMouseLeave={() => {
             paintingRef.current = false;
             setHover(null);
+            setRectDrag(null);
+            endStroke();
           }}
         />
       </div>

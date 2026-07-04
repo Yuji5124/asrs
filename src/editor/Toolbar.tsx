@@ -4,6 +4,10 @@ import { useEditorStore } from './store/editorStore';
 export function Toolbar() {
   const status = useEditorStore((s) => s.status);
   const setMode = useEditorStore((s) => s.setMode);
+  const undo = useEditorStore((s) => s.undo);
+  const redo = useEditorStore((s) => s.redo);
+  const canUndo = useEditorStore((s) => s.past.length > 0);
+  const canRedo = useEditorStore((s) => s.future.length > 0);
   const saveToStorage = useEditorStore((s) => s.saveToStorage);
   const loadFromStorage = useEditorStore((s) => s.loadFromStorage);
   const exportJson = useEditorStore((s) => s.exportJson);
@@ -31,6 +35,14 @@ export function Toolbar() {
     <header className="toolbar">
       <span className="brand">ASRS</span>
       <span className="mode-chip">マップ編集</span>
+      <div className="toolbar-group">
+        <button onClick={undo} disabled={!canUndo} title="Ctrl+Z">
+          元に戻す
+        </button>
+        <button onClick={redo} disabled={!canRedo} title="Ctrl+Y">
+          やり直す
+        </button>
+      </div>
       <div className="toolbar-group">
         <button onClick={saveToStorage}>保存</button>
         <button onClick={loadFromStorage}>読込</button>
