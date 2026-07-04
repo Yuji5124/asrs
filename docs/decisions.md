@@ -47,6 +47,7 @@
 - `npm run build:single` で、JS/CSSをすべてインライン化した単一HTML（`dist-single/index.html`）を出力できるようにした。`vite-plugin-singlefile` + 専用設定 `vite.single.config.ts` を追加。アプリ本体（src/）は無変更。
 - `dist-single/` はgit管理に含めない（.gitignore）。配布したくなったらその都度ビルドする。GitHub Releasesでの配布は将来検討。
 - 注意: `file://` で開いた単一HTML版のlocalStorageは `http://localhost:5173` とは別領域。開発中のプロジェクトを単一HTML版に持ち込むには「JSON書き出し→JSON読み込み」を使う。
+- 出力ファイル名を `dist-single/index.html` → **`dist-single/asrs.html`** に変更。通常ビルドの `dist/index.html`（外部ファイル参照ありのため file:// では白画面になる）との取り違えを防ぐため。単一HTML自体は Chrome/Edge の file:// でアプリが正常にマウントされることをヘッドレスブラウザで確認済み。
 
 ## 2026-07-04 将来構想メモ（未実装）
 
