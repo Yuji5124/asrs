@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createDefaultProject, MAP_WIDTH } from './project';
+import { createDefaultProject, DEFAULT_MAP_HEIGHT, DEFAULT_MAP_WIDTH } from './project';
 import { projectFromJson } from './serialize';
 import { validateProject } from './validate';
 
@@ -78,9 +78,28 @@ describe('validateProject', () => {
     expect(validateProject(p).ok).toBe(false);
   });
 
+  it('デフォルトプロジェクトの初期マップは 32×24', () => {
+    const p = createDefaultProject();
+    expect(p.maps[0].width).toBe(DEFAULT_MAP_WIDTH);
+    expect(p.maps[0].height).toBe(DEFAULT_MAP_HEIGHT);
+    expect(p.maps[0].tiles.length).toBe(DEFAULT_MAP_WIDTH * DEFAULT_MAP_HEIGHT);
+  });
+
+  it('旧サイズ（16×12）のプロジェクトも読み込める', () => {
+    const p = clone();
+    p.maps[0].width = 16;
+    p.maps[0].height = 12;
+    p.maps[0].tiles = new Array(16 * 12).fill('floor');
+    p.maps[0].events = [{ id: 'npc-1', name: 'a', x: 15, y: 11, appearance: 'npc' }];
+    p.startPoint = { mapId: 'map-1', x: 1, y: 1 };
+    const r = validateProject(p);
+    expect(r.errors).toEqual([]);
+    expect(r.ok).toBe(true);
+  });
+
   it('通行不可タイル上の startPoint は警告になる（エラーではない）', () => {
     const p = clone();
-    p.maps[0].tiles[p.startPoint.y * MAP_WIDTH + p.startPoint.x] = 'wall';
+    p.maps[0].tiles[p.startPoint.y * DEFAULT_MAP_WIDTH + p.startPoint.x] = 'wall';
     const r = validateProject(p);
     expect(r.ok).toBe(true);
     expect(r.warnings.length).toBeGreaterThan(0);

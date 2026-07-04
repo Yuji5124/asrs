@@ -1,15 +1,16 @@
 import { FORMAT_VERSION, type AsrsProject, type GameMap, type TileType } from '../types';
 
-export const MAP_WIDTH = 16;
-export const MAP_HEIGHT = 12;
+/** 新規マップの初期サイズ。データ上は GameMap.width / height が正で、可変 */
+export const DEFAULT_MAP_WIDTH = 32;
+export const DEFAULT_MAP_HEIGHT = 24;
 
 export function createDefaultMap(): GameMap {
   return {
     id: 'map-1',
     name: 'はじまりのマップ',
-    width: MAP_WIDTH,
-    height: MAP_HEIGHT,
-    tiles: new Array<TileType>(MAP_WIDTH * MAP_HEIGHT).fill('floor'),
+    width: DEFAULT_MAP_WIDTH,
+    height: DEFAULT_MAP_HEIGHT,
+    tiles: new Array<TileType>(DEFAULT_MAP_WIDTH * DEFAULT_MAP_HEIGHT).fill('floor'),
     events: [],
   };
 }

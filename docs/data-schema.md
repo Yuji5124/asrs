@@ -27,7 +27,7 @@
 - `TileType` — `"floor" | "wall" | "grass" | "water"`（Phase 1）。通行可否はタイル定義側に `walkable: boolean` で持たせる。
 - `GameMap`
   - `id`, `name`
-  - `width`, `height`（Phase 1では 16×12 固定）
+  - `width`, `height`（初期値は32×24。データ上はこの2フィールドが正で、16×12など他サイズのマップもそのまま有効）
   - `tiles` — 1次元配列（`width` と併用してindex計算）
   - `events: MapEvent[]`
 - `MapEvent`
