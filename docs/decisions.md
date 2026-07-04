@@ -64,6 +64,12 @@
 - `data-schema.md` には将来案として `GameMap.generation`（`mode`, `seed`, `generatorVersion`, `generatedAt`）を追記する。現時点では未実装で、`src/core/types/` は変更しない。
 - 公開向け表現は「Seed World Mode」「シード生成ワールド」「自動生成RPGマップ」「生成後に編集できるRPGマップ」とし、既存作品の名称・見た目・固有要素を使わない。
 
+## 2026-07-04 Phase 2A: メッセージイベント
+
+- Phase 2Aでは `EventCommand` を `showMessage` のみに限定し、`giveItem` / `setSwitch` / `transferPlayer` / `startBattle` は未実装のままvalidateでも拒否する。理由: Phase 2全体を先取りせず、メッセージ表示の縦切りだけを安全に確認するため。
+- 旧Phase 1データ互換のため、読み込み時に `MapEvent.commands` が無い場合は `[]` を補う。新規配置物は空文字の `showMessage` を1件持ち、右パネルで編集すると保存JSONに反映する。
+- テストプレイ中は、プレイヤーに隣接する配置物の最初の `showMessage` を Enter / Space / Z で開き、表示中は移動を止める。もう一度決定キーで閉じる。
+
 ## 未決事項
 
 - 世界観・命名トーン（王道ファンタジー変形 / 和風 / SF混合など）— Phase 3までに決める

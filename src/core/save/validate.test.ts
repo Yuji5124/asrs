@@ -47,7 +47,7 @@ describe('validateProject', () => {
 
   it('マップ外の配置物はエラー', () => {
     const p = clone();
-    p.maps[0].events.push({ id: 'npc-1', name: 'x', x: 99, y: 0, appearance: 'npc' });
+    p.maps[0].events.push({ id: 'npc-1', name: 'x', x: 99, y: 0, appearance: 'npc', commands: [] });
     expect(validateProject(p).ok).toBe(false);
   });
 
@@ -62,7 +62,7 @@ describe('validateProject', () => {
 
   it('不正な appearance はエラー', () => {
     const p = clone();
-    p.maps[0].events.push({ id: 'x-1', name: 'x', x: 3, y: 3, appearance: 'dragon' });
+    p.maps[0].events.push({ id: 'x-1', name: 'x', x: 3, y: 3, appearance: 'dragon', commands: [] });
     expect(validateProject(p).ok).toBe(false);
   });
 
@@ -114,6 +114,53 @@ describe('validateProject', () => {
     const r = validateProject(p);
     expect(r.ok).toBe(true);
     expect(r.warnings.length).toBeGreaterThan(0);
+  });
+
+  it('commands付きMapEventを受け入れる', () => {
+    const p = clone();
+    p.maps[0].events.push({
+      id: 'npc-1',
+      name: 'a',
+      x: 3,
+      y: 3,
+      appearance: 'npc',
+      commands: [{ type: 'showMessage', text: 'ようこそ。' }],
+    });
+    expect(validateProject(p).ok).toBe(true);
+  });
+
+  it('commandsがない旧データも読み込める', () => {
+    const p = clone();
+    p.maps[0].events.push({ id: 'npc-1', name: 'a', x: 3, y: 3, appearance: 'npc' });
+    const r = projectFromJson(JSON.stringify(p));
+    expect(r.project?.maps[0].events[0].commands).toEqual([]);
+    expect(r.errors).toEqual([]);
+  });
+
+  it('showMessageの不正データはエラー', () => {
+    const p = clone();
+    p.maps[0].events.push({
+      id: 'npc-1',
+      name: 'a',
+      x: 3,
+      y: 3,
+      appearance: 'npc',
+      commands: [{ type: 'showMessage', text: 42 }],
+    });
+    expect(validateProject(p).ok).toBe(false);
+  });
+
+  it('Phase 2AではshowMessage以外のコマンドはエラー', () => {
+    const p = clone();
+    p.maps[0].events.push({
+      id: 'npc-1',
+      name: 'a',
+      x: 3,
+      y: 3,
+      appearance: 'npc',
+      commands: [{ type: 'giveItem', itemId: 'item-1', amount: 1 }],
+    });
+    expect(validateProject(p).ok).toBe(false);
   });
 });
 

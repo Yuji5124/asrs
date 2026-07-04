@@ -161,6 +161,19 @@ button.danger {
   border-radius: 4px;
 }
 
+.inspector textarea {
+  width: 100%;
+  margin-top: 4px;
+  padding: 6px;
+  resize: vertical;
+  min-height: 96px;
+  background: #1d1e23;
+  color: #e8e6df;
+  border: 1px solid #565a66;
+  border-radius: 4px;
+  font: inherit;
+}
+
 .inspector p {
   font-size: 13px;
   color: #b9bec7;
@@ -169,4 +182,35 @@ button.danger {
 
 .hint-text {
   color: #7d838e;
+}
+
+.play {
+  position: relative;
+}
+
+.message-window {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 24px;
+  min-height: 88px;
+  padding: 16px 18px;
+  background: rgba(29, 30, 35, 0.96);
+  border: 2px solid #cdb964;
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.message-window p {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.message-window span {
+  position: absolute;
+  right: 14px;
+  bottom: 8px;
+  color: #9aa0ab;
+  font-size: 12px;
 }

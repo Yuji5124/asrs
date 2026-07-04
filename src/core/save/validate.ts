@@ -21,6 +21,28 @@ function isInt(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value);
 }
 
+function validateEventCommands(value: unknown, where: string, errors: string[]): void {
+  if (value === undefined) return; // Phase 1の旧データは読み込み時に [] を補う
+  if (!Array.isArray(value)) {
+    errors.push(`${where}.commands が配列ではありません`);
+    return;
+  }
+  for (const [i, command] of value.entries()) {
+    const commandWhere = `${where}.commands[${i}]`;
+    if (!isRecord(command)) {
+      errors.push(`${commandWhere} がオブジェクトではありません`);
+      continue;
+    }
+    if (command.type !== 'showMessage') {
+      errors.push(`${commandWhere}.type は showMessage のみ有効です`);
+      continue;
+    }
+    if (typeof command.text !== 'string') {
+      errors.push(`${commandWhere}.text が文字列ではありません`);
+    }
+  }
+}
+
 /**
  * プロジェクトJSONの検査。手入力・ファイル・localStorage・AI出力の
  * すべての外部入力がこの関数を通る（docs/data-schema.md 参照）。
@@ -100,6 +122,7 @@ export function validateProject(data: unknown): ValidationResult {
       if (typeof ev.appearance !== 'string' || !(EVENT_APPEARANCES as string[]).includes(ev.appearance)) {
         errors.push(`${evWhere}.appearance が不正です`);
       }
+      validateEventCommands(ev.commands, evWhere, errors);
       const x = ev.x;
       const y = ev.y;
       if (!isInt(x) || !isInt(y) || x < 0 || y < 0 || x >= width || y >= height) {

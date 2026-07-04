@@ -4,12 +4,20 @@ export type TileType = 'floor' | 'wall' | 'grass' | 'water';
 
 export type EventAppearance = 'chest' | 'npc' | 'orb';
 
+export interface ShowMessageCommand {
+  type: 'showMessage';
+  text: string;
+}
+
+export type EventCommand = ShowMessageCommand;
+
 export interface MapEvent {
   id: string;
   name: string;
   x: number;
   y: number;
   appearance: EventAppearance;
+  commands: EventCommand[];
 }
 
 export interface GameMap {

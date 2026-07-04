@@ -8,6 +8,8 @@
 
 ## Phase 2 で実装する5コマンド
 
+Phase 2Aでは `showMessage` のみ実装する。`giveItem` / `setSwitch` / `transferPlayer` / `startBattle` は型・validate・UI・実行処理のいずれもまだ有効にしない。
+
 ### 1. メッセージ表示 — `showMessage`
 ```json
 { "type": "showMessage", "text": "ようこそ、旅の人。" }

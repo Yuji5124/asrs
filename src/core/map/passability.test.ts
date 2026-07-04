@@ -14,7 +14,7 @@ function makeMap(): GameMap {
       'floor', 'floor', 'floor', 'floor',
       'floor', 'floor', 'floor', 'floor',
     ],
-    events: [{ id: 'chest-1', name: 'たからばこ1', x: 0, y: 1, appearance: 'chest' }],
+    events: [{ id: 'chest-1', name: 'たからばこ1', x: 0, y: 1, appearance: 'chest', commands: [] }],
   };
 }
 

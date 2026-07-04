@@ -25,6 +25,7 @@ interface EditorState {
   /** マップ上のマスにパレットで選択中のツールを適用する */
   applyToolAt: (x: number, y: number, isDrag: boolean) => void;
   renameEvent: (id: string, name: string) => void;
+  updateEventMessage: (id: string, text: string) => void;
   deleteEvent: (id: string) => void;
   renameMap: (name: string) => void;
   saveToStorage: () => void;
@@ -104,6 +105,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         x,
         y,
         appearance: palette.appearance,
+        commands: [{ type: 'showMessage', text: '' }],
       };
       set({
         project: touch({ ...project, maps: [{ ...map, events: [...map.events, event] }, ...project.maps.slice(1)] }),
@@ -126,6 +128,15 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const { project } = get();
     const map = project.maps[0];
     const events = map.events.map((e) => (e.id === id ? { ...e, name } : e));
+    set({ project: touch({ ...project, maps: [{ ...map, events }, ...project.maps.slice(1)] }) });
+  },
+
+  updateEventMessage: (id, text) => {
+    const { project } = get();
+    const map = project.maps[0];
+    const events = map.events.map((e) =>
+      e.id === id ? { ...e, commands: [{ type: 'showMessage' as const, text }] } : e,
+    );
     set({ project: touch({ ...project, maps: [{ ...map, events }, ...project.maps.slice(1)] }) });
   },
 

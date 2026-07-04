@@ -5,10 +5,12 @@ export function Inspector() {
   const project = useEditorStore((s) => s.project);
   const selectedEventId = useEditorStore((s) => s.selectedEventId);
   const renameEvent = useEditorStore((s) => s.renameEvent);
+  const updateEventMessage = useEditorStore((s) => s.updateEventMessage);
   const deleteEvent = useEditorStore((s) => s.deleteEvent);
   const renameMap = useEditorStore((s) => s.renameMap);
   const map = project.maps[0];
   const event = map.events.find((e) => e.id === selectedEventId) ?? null;
+  const message = event?.commands.find((command) => command.type === 'showMessage')?.text ?? '';
 
   return (
     <aside className="inspector">
@@ -19,6 +21,14 @@ export function Inspector() {
           <label>
             名前
             <input value={event.name} onChange={(e) => renameEvent(event.id, e.target.value)} />
+          </label>
+          <label>
+            メッセージ
+            <textarea
+              value={message}
+              rows={5}
+              onChange={(e) => updateEventMessage(event.id, e.target.value)}
+            />
           </label>
           <p>ID: {event.id}</p>
           <p>種別: {EVENT_DEFS[event.appearance].label}</p>

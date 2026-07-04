@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { isWalkable } from '../core/map/passability';
-import type { PlaySession } from '../core/types';
+import { eventAt, isWalkable } from '../core/map/passability';
+import type { GameMap, MapEvent, PlaySession } from '../core/types';
 import { useEditorStore } from '../editor/store/editorStore';
 import { drawMap, drawPlayer, TILE_SIZE } from '../render/drawMap';
 
@@ -19,6 +19,27 @@ const KEY_DIRS: Record<string, [number, number]> = {
   D: [1, 0],
 };
 
+const DECISION_KEYS = new Set(['Enter', ' ', 'Spacebar', 'z', 'Z']);
+const ADJACENT_DIRS: [number, number][] = [
+  [0, -1],
+  [0, 1],
+  [-1, 0],
+  [1, 0],
+];
+
+function adjacentEvent(map: GameMap, x: number, y: number): MapEvent | null {
+  for (const [dx, dy] of ADJACENT_DIRS) {
+    const event = eventAt(map, x + dx, y + dy);
+    if (event) return event;
+  }
+  return null;
+}
+
+function firstMessage(event: MapEvent): string | null {
+  const text = event.commands.find((command) => command.type === 'showMessage')?.text;
+  return text && text.length > 0 ? text : null;
+}
+
 export function PlayView() {
   const project = useEditorStore((s) => s.project);
   const setMode = useEditorStore((s) => s.setMode);
@@ -29,12 +50,26 @@ export function PlayView() {
     playerX: project.startPoint.x,
     playerY: project.startPoint.y,
   }));
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      if (DECISION_KEYS.has(e.key)) {
+        e.preventDefault();
+        if (message !== null) {
+          setMessage(null);
+          return;
+        }
+        const event = adjacentEvent(map, session.playerX, session.playerY);
+        const text = event ? firstMessage(event) : null;
+        if (text) setMessage(text);
+        return;
+      }
+
       const dir = KEY_DIRS[e.key];
       if (!dir) return;
       e.preventDefault();
+      if (message !== null) return;
       setSession((s) => {
         const nx = s.playerX + dir[0];
         const ny = s.playerY + dir[1];
@@ -43,7 +78,7 @@ export function PlayView() {
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [map]);
+  }, [map, message, session.playerX, session.playerY]);
 
   useEffect(() => {
     const ctx = canvasRef.current?.getContext('2d');
@@ -67,6 +102,12 @@ export function PlayView() {
           height={map.height * TILE_SIZE}
         />
       </main>
+      {message !== null && (
+        <div className="message-window">
+          <p>{message}</p>
+          <span>Enter / Space / Z</span>
+        </div>
+      )}
     </div>
   );
 }
