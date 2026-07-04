@@ -48,6 +48,8 @@
 - `dist-single/` はgit管理に含めない（.gitignore）。配布したくなったらその都度ビルドする。GitHub Releasesでの配布は将来検討。
 - 注意: `file://` で開いた単一HTML版のlocalStorageは `http://localhost:5173` とは別領域。開発中のプロジェクトを単一HTML版に持ち込むには「JSON書き出し→JSON読み込み」を使う。
 - 出力ファイル名を `dist-single/index.html` → **`dist-single/asrs.html`** に変更。通常ビルドの `dist/index.html`（外部ファイル参照ありのため file:// では白画面になる）との取り違えを防ぐため。単一HTML自体は Chrome/Edge の file:// でアプリが正常にマウントされることをヘッドレスブラウザで確認済み。
+- ユーザーが `index.html` のダブルクリックで起動しやすいよう、単一HTMLの出力名を **`dist-single/index.html`** に戻した。ルート `index.html` はVite用のまま維持し、`file://` で開いた時だけ `dist-single/index.html` へ移動する。
+- リダイレクトの判定を「パス名が `/dist-single/index.html` で終わるか」から「`src` 付きモジュールscriptの有無」に変更。理由: パス判定だと単一HTMLを別フォルダへコピー（＝配布）した時に存在しない先へリダイレクトして壊れる。単一版はJSインライン化で `src` を持たないため、中身での判定ならどこへコピーしても動く（file://の4シナリオをヘッドレスブラウザで検証済み）。
 
 ## 2026-07-04 将来構想メモ（未実装）
 

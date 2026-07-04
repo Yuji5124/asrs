@@ -7,6 +7,20 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // file:// で「外部参照のままのシェル」を開いた場合だけ、単一HTML版へ誘導する。
+      // 単一HTML版はJSがインライン化され src 付きモジュールscriptを持たないため、
+      // どこへコピーされてもこのリダイレクトは発動しない。
+      window.addEventListener('DOMContentLoaded', () => {
+        if (window.location.protocol !== 'file:') return;
+        if (!document.querySelector('script[type="module"][src]')) return;
+        const path = window.location.pathname.replace(/\\/g, '/');
+        const directOpenUrl = path.endsWith('/dist/index.html')
+          ? new URL('../dist-single/index.html', window.location.href)
+          : new URL('./dist-single/index.html', window.location.href);
+        window.location.replace(directOpenUrl.href);
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
