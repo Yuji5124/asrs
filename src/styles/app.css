@@ -229,6 +229,7 @@ button.danger {
 .canvas-footer {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
   padding: 6px 12px;
   font-size: 12px;
@@ -239,9 +240,19 @@ button.danger {
 }
 
 .canvas-footer-cell {
+  flex: 1 1 34%;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.canvas-footer-action {
+  flex: 1 1 28%;
+  min-width: 0;
+  color: #d9d2ad;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
 }
 
 .canvas-footer-map {
@@ -280,6 +291,54 @@ button.danger {
 
   .inspector {
     width: 216px;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace {
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  .palette,
+  .inspector {
+    width: 100%;
+    max-height: 220px;
+    flex-shrink: 0;
+  }
+
+  .palette {
+    display: block;
+  }
+
+  .palette-section {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+  }
+
+  .canvas-column {
+    min-height: 360px;
+    flex: 0 0 auto;
+  }
+
+  .canvas-area {
+    min-height: 300px;
+    padding: 10px;
+  }
+
+  .canvas-footer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 4px;
+    white-space: normal;
+  }
+
+  .canvas-footer-action {
+    text-align: left;
+  }
+
+  .canvas-footer-map {
+    flex-shrink: 1;
   }
 }
 
