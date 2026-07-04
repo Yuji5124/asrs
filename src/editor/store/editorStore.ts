@@ -105,7 +105,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         x,
         y,
         appearance: palette.appearance,
-        commands: [{ type: 'showMessage', text: '' }],
+        commands: [{ type: 'showMessage', text: EVENT_DEFS[palette.appearance].defaultMessage }],
       };
       set({
         project: touch({ ...project, maps: [{ ...map, events: [...map.events, event] }, ...project.maps.slice(1)] }),

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { GameMap } from '../types';
-import { eventAt, inBounds, isWalkable, tileAt } from './passability';
+import { adjacentEventAt, eventAt, inBounds, isWalkable, tileAt } from './passability';
 
 function makeMap(): GameMap {
   return {
@@ -67,5 +67,37 @@ describe('isWalkable', () => {
     expect(isWalkable(makeMap(), -1, 0)).toBe(false);
     expect(isWalkable(makeMap(), 0, 3)).toBe(false);
     expect(isWalkable(makeMap(), 4, 2)).toBe(false);
+  });
+});
+
+describe('adjacentEventAt', () => {
+  it('上下左右1マスの配置物を調べられる', () => {
+    const map = makeMap();
+    expect(adjacentEventAt(map, 1, 1)?.id).toBe('chest-1');
+  });
+
+  it('複数ある場合は上、右、下、左の順で選ぶ', () => {
+    const map: GameMap = {
+      ...makeMap(),
+      events: [
+        { id: 'left', name: 'left', x: 0, y: 1, appearance: 'npc', commands: [] },
+        { id: 'down', name: 'down', x: 1, y: 2, appearance: 'npc', commands: [] },
+        { id: 'right', name: 'right', x: 2, y: 1, appearance: 'npc', commands: [] },
+        { id: 'up', name: 'up', x: 1, y: 0, appearance: 'npc', commands: [] },
+      ],
+    };
+    expect(adjacentEventAt(map, 1, 1)?.id).toBe('up');
+    expect(adjacentEventAt({ ...map, events: map.events.filter((e) => e.id !== 'up') }, 1, 1)?.id).toBe('right');
+    expect(
+      adjacentEventAt({ ...map, events: map.events.filter((e) => !['up', 'right'].includes(e.id)) }, 1, 1)?.id,
+    ).toBe('down');
+  });
+
+  it('斜めの配置物は対象にしない', () => {
+    const map: GameMap = {
+      ...makeMap(),
+      events: [{ id: 'diagonal', name: 'diagonal', x: 2, y: 2, appearance: 'npc', commands: [] }],
+    };
+    expect(adjacentEventAt(map, 1, 1)).toBeNull();
   });
 });

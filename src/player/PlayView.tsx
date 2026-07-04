@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { eventAt, isWalkable } from '../core/map/passability';
-import type { GameMap, MapEvent, PlaySession } from '../core/types';
+import { adjacentEventAt, isWalkable } from '../core/map/passability';
+import type { MapEvent, PlaySession } from '../core/types';
 import { useEditorStore } from '../editor/store/editorStore';
 import { drawMap, drawPlayer, TILE_SIZE } from '../render/drawMap';
 
@@ -20,20 +20,6 @@ const KEY_DIRS: Record<string, [number, number]> = {
 };
 
 const DECISION_KEYS = new Set(['Enter', ' ', 'Spacebar', 'z', 'Z']);
-const ADJACENT_DIRS: [number, number][] = [
-  [0, -1],
-  [0, 1],
-  [-1, 0],
-  [1, 0],
-];
-
-function adjacentEvent(map: GameMap, x: number, y: number): MapEvent | null {
-  for (const [dx, dy] of ADJACENT_DIRS) {
-    const event = eventAt(map, x + dx, y + dy);
-    if (event) return event;
-  }
-  return null;
-}
 
 function firstMessage(event: MapEvent): string | null {
   const text = event.commands.find((command) => command.type === 'showMessage')?.text;
@@ -51,6 +37,8 @@ export function PlayView() {
     playerY: project.startPoint.y,
   }));
   const [message, setMessage] = useState<string | null>(null);
+  const nearbyEvent = adjacentEventAt(map, session.playerX, session.playerY);
+  const showInteractHint = message === null && nearbyEvent !== null;
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -60,7 +48,7 @@ export function PlayView() {
           setMessage(null);
           return;
         }
-        const event = adjacentEvent(map, session.playerX, session.playerY);
+        const event = adjacentEventAt(map, session.playerX, session.playerY);
         const text = event ? firstMessage(event) : null;
         if (text) setMessage(text);
         return;
@@ -102,6 +90,7 @@ export function PlayView() {
           height={map.height * TILE_SIZE}
         />
       </main>
+      {showInteractHint && <div className="interact-hint">Enter / Space / Zで調べる</div>}
       {message !== null && (
         <div className="message-window">
           <p>{message}</p>
