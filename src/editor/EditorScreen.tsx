@@ -9,9 +9,7 @@ export function EditorScreen() {
       <Toolbar />
       <div className="workspace">
         <Palette />
-        <main className="canvas-area">
-          <MapCanvas />
-        </main>
+        <MapCanvas />
         <Inspector />
       </div>
     </div>

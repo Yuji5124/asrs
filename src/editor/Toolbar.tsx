@@ -30,10 +30,15 @@ export function Toolbar() {
   return (
     <header className="toolbar">
       <span className="brand">ASRS</span>
-      <button onClick={saveToStorage}>保存</button>
-      <button onClick={loadFromStorage}>読込</button>
-      <button onClick={handleExport}>JSON書き出し</button>
-      <button onClick={() => fileRef.current?.click()}>JSON読み込み</button>
+      <span className="mode-chip">マップ編集</span>
+      <div className="toolbar-group">
+        <button onClick={saveToStorage}>保存</button>
+        <button onClick={loadFromStorage}>読込</button>
+      </div>
+      <div className="toolbar-group">
+        <button onClick={handleExport}>JSON書き出し</button>
+        <button onClick={() => fileRef.current?.click()}>JSON読み込み</button>
+      </div>
       <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={handleFile} />
       <button className="primary" onClick={() => setMode('play')}>
         ▶ テストプレイ

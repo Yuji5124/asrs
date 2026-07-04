@@ -12,50 +12,79 @@ export function Inspector() {
   const event = map.events.find((e) => e.id === selectedEventId) ?? null;
   const message = event?.commands.find((command) => command.type === 'showMessage')?.text ?? '';
 
+  if (event) {
+    const def = EVENT_DEFS[event.appearance];
+    return (
+      <aside className="inspector">
+        <h2>配置物の設定</h2>
+        <div className="inspector-chip">
+          <span className="swatch swatch-round" style={{ background: def.color }}>
+            {def.symbol}
+          </span>
+          <span>{def.label}</span>
+        </div>
+        <label>
+          名前
+          <input value={event.name} onChange={(e) => renameEvent(event.id, e.target.value)} />
+        </label>
+        <label>
+          メッセージ
+          <textarea
+            value={message}
+            rows={5}
+            placeholder="話しかけた時に表示する文章"
+            onChange={(e) => updateEventMessage(event.id, e.target.value)}
+          />
+        </label>
+        <dl className="meta">
+          <div>
+            <dt>ID</dt>
+            <dd>{event.id}</dd>
+          </div>
+          <div>
+            <dt>座標</dt>
+            <dd>
+              ({event.x}, {event.y})
+            </dd>
+          </div>
+        </dl>
+        <button className="danger" onClick={() => deleteEvent(event.id)}>
+          この配置物を削除
+        </button>
+      </aside>
+    );
+  }
+
   return (
     <aside className="inspector">
-      <h2>設定</h2>
-      {event ? (
+      <h2>マップの設定</h2>
+      <label>
+        マップ名
+        <input value={map.name} onChange={(e) => renameMap(e.target.value)} />
+      </label>
+      <dl className="meta">
         <div>
-          <h3>配置物</h3>
-          <label>
-            名前
-            <input value={event.name} onChange={(e) => renameEvent(event.id, e.target.value)} />
-          </label>
-          <label>
-            メッセージ
-            <textarea
-              value={message}
-              rows={5}
-              onChange={(e) => updateEventMessage(event.id, e.target.value)}
-            />
-          </label>
-          <p>ID: {event.id}</p>
-          <p>種別: {EVENT_DEFS[event.appearance].label}</p>
-          <p>
-            座標: ({event.x}, {event.y})
-          </p>
-          <button className="danger" onClick={() => deleteEvent(event.id)}>
-            削除
-          </button>
+          <dt>サイズ</dt>
+          <dd>
+            {map.width}×{map.height}
+          </dd>
         </div>
-      ) : (
         <div>
-          <h3>マップ</h3>
-          <label>
-            マップ名
-            <input value={map.name} onChange={(e) => renameMap(e.target.value)} />
-          </label>
-          <p>
-            サイズ: {map.width}×{map.height}
-          </p>
-          <p>
-            スタート地点: ({project.startPoint.x}, {project.startPoint.y})
-          </p>
-          <p>配置物: {map.events.length}個</p>
-          <p className="hint-text">配置物をクリックすると詳細を編集できます</p>
+          <dt>スタート地点</dt>
+          <dd>
+            ({project.startPoint.x}, {project.startPoint.y})
+          </dd>
         </div>
-      )}
+        <div>
+          <dt>配置物</dt>
+          <dd>{map.events.length}個</dd>
+        </div>
+      </dl>
+      <div className="hint-box">
+        <p>タイルはクリックまたはドラッグで塗れます</p>
+        <p>配置物はクリックで置けます</p>
+        <p>置いた配置物をクリックすると、ここで名前とメッセージを編集できます</p>
+      </div>
     </aside>
   );
 }
