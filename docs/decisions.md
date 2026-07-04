@@ -42,6 +42,12 @@
 - マップCanvasエリアはスクロール表示に変更（`overflow: auto` + `margin: auto` で、小さいマップは中央寄せ・大きいマップはスクロール）。エディタ/テストプレイ共通。
 - プレイヤー追従カメラ・ミニマップ・ズーム・範囲塗りは実装しない（48×36以上に拡張する時の課題として先送り）。
 
+## 2026-07-04 Phase 1.1: Single HTML Export
+
+- `npm run build:single` で、JS/CSSをすべてインライン化した単一HTML（`dist-single/index.html`）を出力できるようにした。`vite-plugin-singlefile` + 専用設定 `vite.single.config.ts` を追加。アプリ本体（src/）は無変更。
+- `dist-single/` はgit管理に含めない（.gitignore）。配布したくなったらその都度ビルドする。GitHub Releasesでの配布は将来検討。
+- 注意: `file://` で開いた単一HTML版のlocalStorageは `http://localhost:5173` とは別領域。開発中のプロジェクトを単一HTML版に持ち込むには「JSON書き出し→JSON読み込み」を使う。
+
 ## 2026-07-04 将来構想メモ（未実装）
 
 - 「シード生成RPGワールド（自動生成ワールドモード）」を将来候補として検討する。seed文字列から16×12マップ（grass/water/wall/floor）とスタート地点・宝箱・NPC候補・イベント玉候補を自動配置し、同じseedなら同じマップを再生成できる。生成後は通常のASRSマップとして編集・JSON保存できる。**Phase 1では実装しない。** Phase 1完了後に `roadmap.md` へ「Phase 1.5: Seed World Prototype」として追記するか判断する。
